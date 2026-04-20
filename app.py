@@ -1,30 +1,20 @@
 import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
 
 # Page config
 st.set_page_config(page_title="AI Business Decision Engine", layout="wide")
 
 # Title
 st.title("🤖 AI Business Decision Engine")
-st.markdown("Analyze business problems with insights, charts, and execution plans.")
+st.markdown("Analyze business problems and generate structured insights, strategy, and execution plans.")
 
-# Dropdown
+# Dropdown for scenario
 scenario = st.selectbox(
     "Select Business Scenario",
     ["Revenue Drop", "Traffic Decline", "Retention Drop"]
 )
 
 # Input
-user_input = st.text_area("Enter Business Problem", "Describe the issue...")
-
-# Sample data (mock dataset)
-data = pd.DataFrame({
-    "Day": ["Mon", "Tue", "Wed", "Thu", "Fri"],
-    "Traffic": [1000, 950, 900, 1100, 850],
-    "Conversion": [5.0, 4.8, 4.5, 5.2, 4.2],
-    "Retention": [70, 68, 65, 72, 60]
-})
+user_input = st.text_area("Enter Business Problem", "Describe the issue in detail...")
 
 # Button
 if st.button("Run Analysis"):
@@ -33,78 +23,156 @@ if st.button("Run Analysis"):
 
     tab1, tab2, tab3 = st.tabs(["📊 Insights", "🧭 Strategy", "📄 Execution"])
 
-    # -------- INSIGHTS --------
-    with tab1:
+    # ================= REVENUE =================
+    if scenario == "Revenue Drop":
 
-        st.subheader("📈 Trend Analysis")
+        with tab1:
+            st.subheader("🧠 Problem Definition")
+            st.write("Revenue decline observed, primarily driven by mobile conversion issues.")
 
-        fig, ax = plt.subplots()
-
-        if scenario == "Revenue Drop":
-            ax.plot(data["Day"], data["Conversion"])
-            ax.set_title("Conversion Rate Trend")
-
-        elif scenario == "Traffic Decline":
-            ax.plot(data["Day"], data["Traffic"])
-            ax.set_title("Traffic Trend")
-
-        elif scenario == "Retention Drop":
-            ax.plot(data["Day"], data["Retention"])
-            ax.set_title("Retention Trend")
-
-        st.pyplot(fig)
-
-        st.subheader("🔍 Key Insights")
-
-        if scenario == "Revenue Drop":
+            st.subheader("📊 Data Insights")
             st.write("""
-            - Conversion rate declining mid-week  
-            - Revenue drop linked to mobile performance  
+            - Mobile traffic declining  
+            - Conversion rate dropping significantly  
+            - Revenue impact aligned with mobile segment  
             """)
 
-        elif scenario == "Traffic Decline":
+            st.subheader("🔍 Root Cause")
             st.write("""
-            - Traffic steadily decreasing  
-            - Acquisition channels underperforming  
+            - Slow mobile performance  
+            - Checkout friction  
+            - Poor mobile UX  
             """)
 
-        elif scenario == "Retention Drop":
+        with tab2:
+            st.subheader("🧭 Recommendations")
             st.write("""
-            - Retention drops significantly towards end  
-            - Users not returning after first session  
+            1. Improve mobile performance (High)  
+            2. Optimize checkout UX (High)  
+            3. Run A/B tests (Medium)  
             """)
 
-    # -------- STRATEGY --------
-    with tab2:
+            st.subheader("📈 Expected Impact")
+            st.write("5–10% increase in conversion rate")
 
-        if scenario == "Revenue Drop":
+        with tab3:
+            st.subheader("📄 PRD")
+            st.write("Fix mobile performance and checkout flow")
+
+            st.subheader("🗺️ Roadmap")
             st.write("""
-            - Improve mobile performance (High)  
-            - Optimize checkout UX (High)  
+            Phase 1: Diagnose  
+            Phase 2: Optimize  
+            Phase 3: Test  
+            Phase 4: Monitor  
             """)
 
-        elif scenario == "Traffic Decline":
+            st.subheader("✅ Tasks")
             st.write("""
-            - Improve SEO (High)  
-            - Optimize ad campaigns (High)  
+            - Improve load speed  
+            - Redesign checkout  
+            - Run experiments  
             """)
 
-        elif scenario == "Retention Drop":
+    # ================= TRAFFIC =================
+    elif scenario == "Traffic Decline":
+
+        with tab1:
+            st.subheader("🧠 Problem Definition")
+            st.write("Traffic decline observed across key acquisition channels.")
+
+            st.subheader("📊 Data Insights")
             st.write("""
-            - Improve onboarding (High)  
-            - Add engagement features (High)  
+            - Organic traffic dropping  
+            - Paid campaigns underperforming  
+            - Lower impressions and clicks  
             """)
 
-    # -------- EXECUTION --------
-    with tab3:
+            st.subheader("🔍 Root Cause")
+            st.write("""
+            - SEO ranking drop  
+            - Ineffective ad targeting  
+            - Reduced marketing spend  
+            """)
 
-        st.subheader("📄 Execution Plan")
+        with tab2:
+            st.subheader("🧭 Recommendations")
+            st.write("""
+            1. Improve SEO strategy (High)  
+            2. Optimize ad campaigns (High)  
+            3. Increase marketing investment (Medium)  
+            """)
 
-        st.write("""
-        Phase 1: Diagnose issue  
-        Phase 2: Implement fixes  
-        Phase 3: Test & optimize  
-        """)
+            st.subheader("📈 Expected Impact")
+            st.write("10–20% increase in traffic")
+
+        with tab3:
+            st.subheader("📄 PRD")
+            st.write("Improve acquisition channels and visibility")
+
+            st.subheader("🗺️ Roadmap")
+            st.write("""
+            Phase 1: Audit traffic sources  
+            Phase 2: Optimize campaigns  
+            Phase 3: Scale channels  
+            """)
+
+            st.subheader("✅ Tasks")
+            st.write("""
+            - SEO audit  
+            - Campaign optimization  
+            - Budget allocation  
+            """)
+
+    # ================= RETENTION =================
+    elif scenario == "Retention Drop":
+
+        with tab1:
+            st.subheader("🧠 Problem Definition")
+            st.write("User retention declining after initial engagement.")
+
+            st.subheader("📊 Data Insights")
+            st.write("""
+            - High churn rate  
+            - Drop after first session  
+            - Low repeat usage  
+            """)
+
+            st.subheader("🔍 Root Cause")
+            st.write("""
+            - Poor onboarding experience  
+            - Lack of engagement features  
+            - Low perceived value  
+            """)
+
+        with tab2:
+            st.subheader("🧭 Recommendations")
+            st.write("""
+            1. Improve onboarding (High)  
+            2. Add engagement features (High)  
+            3. Personalize user experience (Medium)  
+            """)
+
+            st.subheader("📈 Expected Impact")
+            st.write("15–25% improvement in retention")
+
+        with tab3:
+            st.subheader("📄 PRD")
+            st.write("Enhance onboarding and engagement")
+
+            st.subheader("🗺️ Roadmap")
+            st.write("""
+            Phase 1: Analyze churn  
+            Phase 2: Improve onboarding  
+            Phase 3: Add features  
+            """)
+
+            st.subheader("✅ Tasks")
+            st.write("""
+            - Redesign onboarding  
+            - Add notifications  
+            - Build engagement loops  
+            """)
 
 # Footer
 st.markdown("---")
