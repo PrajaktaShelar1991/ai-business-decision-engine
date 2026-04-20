@@ -8,8 +8,17 @@ user_input = st.text_area("Enter Business Problem", "Revenue dropped by 15%")
 API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
 
 def query(payload):
-    response = requests.post(API_URL, json=payload)
-    return response.json()
+    try:
+        response = requests.post(API_URL, json=payload)
+
+        # Check if response is OK
+        if response.status_code != 200:
+            return {"error": f"API Error: {response.status_code}"}
+
+        return response.json()
+
+    except Exception as e:
+        return {"error": str(e)}
 
 if st.button("Run Analysis"):
 
@@ -28,9 +37,12 @@ if st.button("Run Analysis"):
 
     result = query({"inputs": prompt})
 
-    try:
-        output = result[0]["generated_text"]
-    except:
-        output = "Model is loading or busy. Please try again."
-
-    st.write(output)
+    # Handle errors safely
+    if "error" in result:
+        st.error(f"Error: {result['error']}")
+    else:
+        try:
+            output = result[0]["generated_text"]
+            st.write(output)
+        except:
+            st.warning("Model is loading or response format changed. Please try again in a few seconds.")
