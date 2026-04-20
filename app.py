@@ -1,30 +1,36 @@
 import streamlit as st
+import requests
 
-st.title("🤖 AI Business Decision Engine")
+st.title("🤖 AI Business Decision Engine (Free Version)")
 
-st.write("Enter a business problem and analyze it using AI agents.")
-
-# Input
 user_input = st.text_area("Enter Business Problem", "Revenue dropped by 15%")
 
-# Button
+API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
+
+def query(payload):
+    response = requests.post(API_URL, json=payload)
+    return response.json()
+
 if st.button("Run Analysis"):
 
-    st.subheader("🧠 Problem Definition")
-    st.write("Revenue decline observed. Key metrics impacted: traffic, conversion rate.")
+    prompt = f"""
+    You are a business analyst.
 
-    st.subheader("📊 Data Insights")
-    st.write("Mobile traffic and conversion rates are declining significantly.")
+    Problem: {user_input}
 
-    st.subheader("🔍 Root Cause")
-    st.write("Poor mobile performance and checkout friction impacting conversions.")
+    Provide:
+    1. Problem Definition
+    2. Data Insights
+    3. Root Cause
+    4. Strategy
+    5. Execution Plan (PRD + Roadmap + Tasks)
+    """
 
-    st.subheader("🧭 Strategy")
-    st.write("""
-    - Improve mobile performance (High)
-    - Optimize checkout UX (High)
-    - Run A/B tests (Medium)
-    """)
+    result = query({"inputs": prompt})
 
-    st.subheader("📄 Execution Plan (PRD + Roadmap)")
-    st.write("Includes PRD, phased roadmap, and Jira tasks for implementation.")
+    try:
+        output = result[0]["generated_text"]
+    except:
+        output = "Model is loading or busy. Please try again."
+
+    st.write(output)
