@@ -7,103 +7,172 @@ st.set_page_config(page_title="AI Business Decision Engine", layout="wide")
 st.title("🤖 AI Business Decision Engine")
 st.markdown("Analyze business problems and generate structured insights, strategy, and execution plans.")
 
+# Dropdown for scenario
+scenario = st.selectbox(
+    "Select Business Scenario",
+    ["Revenue Drop", "Traffic Decline", "Retention Drop"]
+)
+
 # Input
-user_input = st.text_area("Enter Business Problem", "Revenue dropped by 15% on mobile")
+user_input = st.text_area("Enter Business Problem", "Describe the issue in detail...")
 
 # Button
 if st.button("Run Analysis"):
 
-    st.success("Analysis generated successfully!")
+    st.success(f"Analysis generated for: {scenario}")
 
-    # Create tabs
     tab1, tab2, tab3 = st.tabs(["📊 Insights", "🧭 Strategy", "📄 Execution"])
 
-    # -------- INSIGHTS TAB --------
-    with tab1:
-        if "revenue" in user_input.lower():
+    # ================= REVENUE =================
+    if scenario == "Revenue Drop":
 
+        with tab1:
             st.subheader("🧠 Problem Definition")
-            st.write("Revenue decline observed, primarily driven by drop in mobile conversions.")
+            st.write("Revenue decline observed, primarily driven by mobile conversion issues.")
 
             st.subheader("📊 Data Insights")
             st.write("""
-            - Mobile traffic declining over time  
-            - Conversion rates significantly lower on mobile vs desktop  
-            - Revenue drop aligned with mobile performance issues  
+            - Mobile traffic declining  
+            - Conversion rate dropping significantly  
+            - Revenue impact aligned with mobile segment  
             """)
 
             st.subheader("🔍 Root Cause")
             st.write("""
-            - Slow mobile page load time  
-            - Friction in checkout flow  
-            - Poor mobile user experience  
+            - Slow mobile performance  
+            - Checkout friction  
+            - Poor mobile UX  
             """)
 
-        else:
-            st.write("General business problem detected. Insights will vary based on scenario.")
-
-    # -------- STRATEGY TAB --------
-    with tab2:
-        if "revenue" in user_input.lower():
-
+        with tab2:
             st.subheader("🧭 Recommendations")
             st.write("""
-            1. Improve mobile performance (High Priority)  
-            2. Optimize checkout experience (High Priority)  
-            3. Conduct A/B testing for UX improvements (Medium Priority)  
-            4. Improve page load speed (High Priority)  
+            1. Improve mobile performance (High)  
+            2. Optimize checkout UX (High)  
+            3. Run A/B tests (Medium)  
             """)
 
             st.subheader("📈 Expected Impact")
+            st.write("5–10% increase in conversion rate")
+
+        with tab3:
+            st.subheader("📄 PRD")
+            st.write("Fix mobile performance and checkout flow")
+
+            st.subheader("🗺️ Roadmap")
             st.write("""
-            - Conversion increase: 5–10%  
-            - Revenue recovery within 4–6 weeks  
+            Phase 1: Diagnose  
+            Phase 2: Optimize  
+            Phase 3: Test  
+            Phase 4: Monitor  
             """)
 
-        else:
-            st.write("Strategy will be generated based on the type of problem.")
-
-    # -------- EXECUTION TAB --------
-    with tab3:
-        if "revenue" in user_input.lower():
-
-            st.subheader("📄 Product Requirement Document (PRD)")
-
-            st.markdown("### Problem")
-            st.write("Revenue decline due to poor mobile performance and conversion issues.")
-
-            st.markdown("### Solution")
+            st.subheader("✅ Tasks")
             st.write("""
-            - Optimize mobile speed  
-            - Improve checkout UX  
-            - Reduce friction in payment flow  
+            - Improve load speed  
+            - Redesign checkout  
+            - Run experiments  
             """)
 
-            st.markdown("### Metrics")
+    # ================= TRAFFIC =================
+    elif scenario == "Traffic Decline":
+
+        with tab1:
+            st.subheader("🧠 Problem Definition")
+            st.write("Traffic decline observed across key acquisition channels.")
+
+            st.subheader("📊 Data Insights")
             st.write("""
-            - Conversion rate  
-            - Page load time  
-            - Revenue growth  
+            - Organic traffic dropping  
+            - Paid campaigns underperforming  
+            - Lower impressions and clicks  
             """)
 
-            st.markdown("### 🗺️ Roadmap")
+            st.subheader("🔍 Root Cause")
             st.write("""
-            **Phase 1:** Diagnose mobile issues  
-            **Phase 2:** Implement performance improvements  
-            **Phase 3:** Run A/B tests  
-            **Phase 4:** Monitor and optimize  
+            - SEO ranking drop  
+            - Ineffective ad targeting  
+            - Reduced marketing spend  
             """)
 
-            st.markdown("### ✅ Jira Tasks")
+        with tab2:
+            st.subheader("🧭 Recommendations")
             st.write("""
-            - TASK-001: Analyze mobile performance  
-            - TASK-002: Optimize frontend load time  
-            - TASK-003: Redesign checkout flow  
-            - TASK-004: Conduct A/B testing  
+            1. Improve SEO strategy (High)  
+            2. Optimize ad campaigns (High)  
+            3. Increase marketing investment (Medium)  
             """)
 
-        else:
-            st.write("Execution plan will be generated based on the scenario.")
+            st.subheader("📈 Expected Impact")
+            st.write("10–20% increase in traffic")
+
+        with tab3:
+            st.subheader("📄 PRD")
+            st.write("Improve acquisition channels and visibility")
+
+            st.subheader("🗺️ Roadmap")
+            st.write("""
+            Phase 1: Audit traffic sources  
+            Phase 2: Optimize campaigns  
+            Phase 3: Scale channels  
+            """)
+
+            st.subheader("✅ Tasks")
+            st.write("""
+            - SEO audit  
+            - Campaign optimization  
+            - Budget allocation  
+            """)
+
+    # ================= RETENTION =================
+    elif scenario == "Retention Drop":
+
+        with tab1:
+            st.subheader("🧠 Problem Definition")
+            st.write("User retention declining after initial engagement.")
+
+            st.subheader("📊 Data Insights")
+            st.write("""
+            - High churn rate  
+            - Drop after first session  
+            - Low repeat usage  
+            """)
+
+            st.subheader("🔍 Root Cause")
+            st.write("""
+            - Poor onboarding experience  
+            - Lack of engagement features  
+            - Low perceived value  
+            """)
+
+        with tab2:
+            st.subheader("🧭 Recommendations")
+            st.write("""
+            1. Improve onboarding (High)  
+            2. Add engagement features (High)  
+            3. Personalize user experience (Medium)  
+            """)
+
+            st.subheader("📈 Expected Impact")
+            st.write("15–25% improvement in retention")
+
+        with tab3:
+            st.subheader("📄 PRD")
+            st.write("Enhance onboarding and engagement")
+
+            st.subheader("🗺️ Roadmap")
+            st.write("""
+            Phase 1: Analyze churn  
+            Phase 2: Improve onboarding  
+            Phase 3: Add features  
+            """)
+
+            st.subheader("✅ Tasks")
+            st.write("""
+            - Redesign onboarding  
+            - Add notifications  
+            - Build engagement loops  
+            """)
 
 # Footer
 st.markdown("---")
