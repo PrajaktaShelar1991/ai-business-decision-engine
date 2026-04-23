@@ -1,5 +1,4 @@
 import csv
-from pathlib import Path
 import streamlit as st
 
 
@@ -11,12 +10,180 @@ def load_csv(path: str):
         return list(csv.DictReader(csv_file))
 
 
+def append_csv_row(path: str, row: dict):
+    with open(path, "a", newline="", encoding="utf-8") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=row.keys())
+        writer.writerow(row)
+
+
 def to_float(value: str) -> float:
     return float(value.replace("%", "").strip())
 
 
 def show_key_number(title: str, value: str, help_text: str = ""):
     st.metric(title, value, help=help_text or None)
+
+
+def normalize_field_value(field_name: str, value: str) -> str:
+    clean_value = value.strip()
+    percent_fields = {"PaidCTR", "TopFunnelCVR", "DropAtStage", "ReasonShare"}
+    if field_name in percent_fields and clean_value and not clean_value.endswith("%"):
+        return f"{clean_value}%"
+    return clean_value
+
+
+def validate_row(row: dict, numeric_fields: set, percent_fields: set):
+    errors = []
+
+    for field, value in row.items():
+        if not value.strip():
+            errors.append(f"`{field}` cannot be empty.")
+
+    for field in numeric_fields:
+        value = row[field].strip()
+        if not value:
+            continue
+        try:
+            float(value)
+        except ValueError:
+            errors.append(f"`{field}` must be a number.")
+
+    for field in percent_fields:
+        value = row[field].strip()
+        if not value:
+            continue
+        if not value.endswith("%"):
+            errors.append(f"`{field}` must end with `%`.")
+            continue
+        try:
+            float(value.replace("%", ""))
+        except ValueError:
+            errors.append(f"`{field}` must contain a valid percentage.")
+
+    return errors
+
+
+def render_data_manager():
+    st.subheader("Data Manager")
+    st.caption("Add realistic rows to any dataset and save them permanently to CSV.")
+
+    dataset_configs = {
+        "Revenue": {
+            "path": "sample-data/revenue_data.csv",
+            "fields": [
+                "Date",
+                "Traffic",
+                "ConversionRate",
+                "Revenue",
+                "Device",
+                "PageLoadSec",
+                "CheckoutDropoffPct",
+                "AOV",
+            ],
+            "numeric_fields": {
+                "Traffic",
+                "ConversionRate",
+                "Revenue",
+                "PageLoadSec",
+                "CheckoutDropoffPct",
+                "AOV",
+            },
+            "percent_fields": set(),
+            "hints": {
+                "Date": "Format: YYYY-MM-DD",
+                "Traffic": "Example: 9500",
+                "ConversionRate": "Example: 2.7",
+                "Revenue": "Example: 112000",
+                "Device": "Example: Mobile or Desktop",
+                "PageLoadSec": "Example: 3.2",
+                "CheckoutDropoffPct": "Example: 59",
+                "AOV": "Example: 410",
+            },
+        },
+        "Acquisition": {
+            "path": "sample-data/acquisition_data.csv",
+            "fields": [
+                "Week",
+                "OrganicSessions",
+                "PaidSessions",
+                "PaidCTR",
+                "CAC",
+                "TopFunnelCVR",
+                "Notes",
+            ],
+            "numeric_fields": {"OrganicSessions", "PaidSessions", "CAC"},
+            "percent_fields": {"PaidCTR", "TopFunnelCVR"},
+            "hints": {
+                "Week": "Format: YYYY-W##",
+                "OrganicSessions": "Example: 32500",
+                "PaidSessions": "Example: 14300",
+                "PaidCTR": "Example: 1.8%",
+                "CAC": "Example: 44",
+                "TopFunnelCVR": "Example: 3.9%",
+                "Notes": "Short context note",
+            },
+        },
+        "Dropout": {
+            "path": "sample-data/dropout_data.csv",
+            "fields": [
+                "Stage",
+                "UsersAtStage",
+                "DropAtStage",
+                "TopReason",
+                "ReasonShare",
+                "Signal",
+            ],
+            "numeric_fields": {"UsersAtStage"},
+            "percent_fields": {"DropAtStage", "ReasonShare"},
+            "hints": {
+                "Stage": "Example: Week 2 Retained",
+                "UsersAtStage": "Example: 4300",
+                "DropAtStage": "Example: 15%",
+                "TopReason": "Primary reason for dropout",
+                "ReasonShare": "Example: 22%",
+                "Signal": "Observed behavioral signal",
+            },
+        },
+    }
+
+    dataset_name = st.selectbox(
+        "Choose dataset",
+        list(dataset_configs.keys()),
+        key="data_manager_dataset",
+    )
+    config = dataset_configs[dataset_name]
+
+    with st.form(key=f"{dataset_name.lower()}_data_form"):
+        form_values = {}
+        for field in config["fields"]:
+            form_values[field] = st.text_input(
+                field,
+                value="",
+                help=config["hints"].get(field, ""),
+            )
+
+        submitted = st.form_submit_button("Add row")
+
+    if submitted:
+        normalized_row = {
+            field: normalize_field_value(field, value)
+            for field, value in form_values.items()
+        }
+        errors = validate_row(
+            normalized_row,
+            numeric_fields=config["numeric_fields"],
+            percent_fields=config["percent_fields"],
+        )
+
+        if errors:
+            for error in errors:
+                st.error(error)
+        else:
+            append_csv_row(config["path"], normalized_row)
+            st.success(f"Row added to `{config['path']}`")
+
+    st.markdown("**Latest rows**")
+    st.dataframe(load_csv(config["path"])[-8:], use_container_width=True)
 
 
 def render_dropout_funnel(stages):
@@ -175,58 +342,64 @@ with st.sidebar:
         "3. Run analysis to view data, diagnosis, and actions."
     )
 
-scenario = st.selectbox(
-    "Choose a scenario",
-    ["Revenue Drop", "Traffic Decline", "Retention Drop"],
-)
-user_input = st.text_area(
-    "Business context",
-    "Example: New users are signing up, but many leave before seeing value.",
-)
+analysis_tab, data_manager_tab = st.tabs(["Analysis", "Data Manager"])
 
-if st.button("Run Analysis", type="primary"):
-    st.success(f"Generated analysis for: {scenario}")
-    st.caption(f"Input context: {user_input}")
-
-    insights_tab, strategy_tab, execution_tab = st.tabs(
-        ["Insights", "Strategy", "Execution Plan"]
+with analysis_tab:
+    scenario = st.selectbox(
+        "Choose a scenario",
+        ["Revenue Drop", "Traffic Decline", "Retention Drop"],
+    )
+    user_input = st.text_area(
+        "Business context",
+        "Example: New users are signing up, but many leave before seeing value.",
     )
 
-    with insights_tab:
-        if scenario == "Revenue Drop":
-            render_scenario_revenue()
-        elif scenario == "Traffic Decline":
-            render_scenario_traffic()
-        else:
-            render_scenario_retention()
+    if st.button("Run Analysis", type="primary"):
+        st.success(f"Generated analysis for: {scenario}")
+        st.caption(f"Input context: {user_input}")
 
-    with strategy_tab:
-        st.subheader("Prioritization Framework")
-        st.markdown(
-            "- **High impact / low effort:** Quick fixes with immediate KPI movement.\n"
-            "- **High impact / high effort:** Core product or platform improvements.\n"
-            "- **Low impact:** Defer unless supporting larger initiatives."
-        )
-        st.subheader("Success Metrics")
-        st.markdown(
-            "- Week 1: Early leading indicators (activation, CTR, checkout completion).\n"
-            "- Week 2-4: Lagging business outcomes (retention, revenue, CAC efficiency)."
+        insights_tab, strategy_tab, execution_tab = st.tabs(
+            ["Insights", "Strategy", "Execution Plan"]
         )
 
-    with execution_tab:
-        st.subheader("30-60-90 Day Plan")
-        st.markdown(
-            "- **0-30 days:** Instrumentation cleanup, baseline measurement, quick wins.\n"
-            "- **31-60 days:** Launch experiments, monitor segment-level movement.\n"
-            "- **61-90 days:** Scale proven solutions and sunset low-impact work."
-        )
-        st.subheader("Delivery Checklist")
-        st.markdown(
-            "- Define owner for each metric.\n"
-            "- Set weekly insight review.\n"
-            "- Document experiment outcomes.\n"
-            "- Decide scale or rollback based on evidence."
-        )
+        with insights_tab:
+            if scenario == "Revenue Drop":
+                render_scenario_revenue()
+            elif scenario == "Traffic Decline":
+                render_scenario_traffic()
+            else:
+                render_scenario_retention()
+
+        with strategy_tab:
+            st.subheader("Prioritization Framework")
+            st.markdown(
+                "- **High impact / low effort:** Quick fixes with immediate KPI movement.\n"
+                "- **High impact / high effort:** Core product or platform improvements.\n"
+                "- **Low impact:** Defer unless supporting larger initiatives."
+            )
+            st.subheader("Success Metrics")
+            st.markdown(
+                "- Week 1: Early leading indicators (activation, CTR, checkout completion).\n"
+                "- Week 2-4: Lagging business outcomes (retention, revenue, CAC efficiency)."
+            )
+
+        with execution_tab:
+            st.subheader("30-60-90 Day Plan")
+            st.markdown(
+                "- **0-30 days:** Instrumentation cleanup, baseline measurement, quick wins.\n"
+                "- **31-60 days:** Launch experiments, monitor segment-level movement.\n"
+                "- **61-90 days:** Scale proven solutions and sunset low-impact work."
+            )
+            st.subheader("Delivery Checklist")
+            st.markdown(
+                "- Define owner for each metric.\n"
+                "- Set weekly insight review.\n"
+                "- Document experiment outcomes.\n"
+                "- Decide scale or rollback based on evidence."
+            )
+
+with data_manager_tab:
+    render_data_manager()
 
 st.markdown("---")
 st.caption("Built as part of AI Product Management Portfolio")
