@@ -1,0 +1,6 @@
+Stage,UsersAtStage,DropAtStage,TopReason,ReasonShare,Signal
+Signed Up,12000,12%,Unclear value proposition,22%,High bounce rate on onboarding welcome screen
+Completed Profile,10560,19%,Too many setup fields,27%,Form abandonment spikes on step 3
+Activated First Value,8554,28%,Time-to-value is too long,34%,Most users do not trigger core action in first session
+Week 1 Retained,6160,24%,Weak habit loop,25%,Session frequency drops sharply after day 4
+Week 4 Retained,4682,11%,Lack of personalized follow-ups,19%,Email and in-app reminder engagement below benchmark
