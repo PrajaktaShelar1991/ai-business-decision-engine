@@ -24,6 +24,67 @@ def show_key_number(title: str, value: str, help_text: str = ""):
     st.metric(title, value, help=help_text or None)
 
 
+def init_operating_state():
+    if "initiative_portfolio" not in st.session_state:
+        st.session_state.initiative_portfolio = [
+            {
+                "Initiative": "Mobile checkout optimization",
+                "Owner": "Growth PM",
+                "Impact": "High",
+                "Effort": "Medium",
+                "Confidence": "High",
+                "Risk": "Medium",
+                "Timeline": "Q2",
+                "Status": "Planned",
+            },
+            {
+                "Initiative": "SEO recovery for high-intent pages",
+                "Owner": "Acquisition PM",
+                "Impact": "High",
+                "Effort": "High",
+                "Confidence": "Medium",
+                "Risk": "Medium",
+                "Timeline": "Q2",
+                "Status": "In Progress",
+            },
+        ]
+    if "experiments" not in st.session_state:
+        st.session_state.experiments = []
+    if "impact_tracking" not in st.session_state:
+        st.session_state.impact_tracking = []
+
+
+def confidence_label(score: float) -> str:
+    if score >= 75:
+        return "High"
+    if score >= 55:
+        return "Medium"
+    return "Low"
+
+
+def render_confidence_score(data_rows, required_fields: list):
+    total_cells = len(data_rows) * len(required_fields)
+    non_empty_cells = 0
+    for row in data_rows:
+        for field in required_fields:
+            if str(row.get(field, "")).strip():
+                non_empty_cells += 1
+    completeness = (non_empty_cells / total_cells) * 100 if total_cells else 0
+
+    sample_volume_score = min(len(data_rows) * 8, 100)
+    confidence_score = (0.65 * completeness) + (0.35 * sample_volume_score)
+    label = confidence_label(confidence_score)
+
+    st.subheader("Insight Confidence")
+    st.metric("Confidence Score", f"{confidence_score:.0f}/100")
+    st.caption(
+        f"Confidence: **{label}** | Data completeness: {completeness:.0f}% | "
+        f"Sample depth factor: {sample_volume_score:.0f}%"
+    )
+    if confidence_score < 55:
+        st.warning("Low confidence: collect more rows or fill missing fields before acting.")
+
+
 def normalize_field_value(field_name: str, value: str) -> str:
     clean_value = value.strip()
     percent_fields = {"PaidCTR", "TopFunnelCVR", "DropAtStage", "ReasonShare"}
@@ -233,6 +294,10 @@ def render_scenario_revenue():
 
     st.subheader("Evidence")
     st.dataframe(data[-10:], use_container_width=True)
+    render_confidence_score(
+        data,
+        ["Date", "Traffic", "ConversionRate", "Revenue", "Device", "PageLoadSec"],
+    )
 
     st.subheader("Recommended Actions")
     st.markdown(
@@ -262,6 +327,10 @@ def render_scenario_traffic():
 
     st.subheader("Evidence")
     st.dataframe(data[-10:], use_container_width=True)
+    render_confidence_score(
+        data,
+        ["Week", "OrganicSessions", "PaidSessions", "PaidCTR", "CAC", "TopFunnelCVR"],
+    )
 
     st.subheader("Recommended Actions")
     st.markdown(
@@ -327,6 +396,158 @@ def render_scenario_retention():
 
     st.subheader("Evidence")
     st.dataframe(data, use_container_width=True)
+    render_confidence_score(
+        data,
+        ["Stage", "UsersAtStage", "DropAtStage", "TopReason", "ReasonShare", "Signal"],
+    )
+
+
+def render_initiative_portfolio():
+    st.subheader("Initiative Portfolio")
+    st.caption("Use this table to show strategic prioritization and ownership.")
+    st.dataframe(st.session_state.initiative_portfolio, use_container_width=True)
+
+    with st.expander("Add initiative"):
+        with st.form("add_initiative_form"):
+            initiative = st.text_input("Initiative")
+            owner = st.text_input("Owner")
+            impact = st.selectbox("Impact", ["High", "Medium", "Low"])
+            effort = st.selectbox("Effort", ["High", "Medium", "Low"])
+            confidence = st.selectbox("Confidence", ["High", "Medium", "Low"])
+            risk = st.selectbox("Risk", ["High", "Medium", "Low"])
+            timeline = st.text_input("Timeline", "Q3")
+            status = st.selectbox("Status", ["Planned", "In Progress", "Blocked", "Done"])
+            submitted = st.form_submit_button("Add initiative")
+        if submitted:
+            if initiative.strip() and owner.strip():
+                st.session_state.initiative_portfolio.append(
+                    {
+                        "Initiative": initiative.strip(),
+                        "Owner": owner.strip(),
+                        "Impact": impact,
+                        "Effort": effort,
+                        "Confidence": confidence,
+                        "Risk": risk,
+                        "Timeline": timeline.strip(),
+                        "Status": status,
+                    }
+                )
+                st.success("Initiative added.")
+            else:
+                st.error("Initiative and Owner are required.")
+
+
+def render_experiment_registry():
+    st.subheader("Experiment Registry")
+    st.caption("Track hypotheses, metrics, and outcomes in one place.")
+    with st.form("add_experiment_form"):
+        name = st.text_input("Experiment name")
+        hypothesis = st.text_area("Hypothesis")
+        metric = st.text_input("Success metric")
+        threshold = st.text_input("Success threshold", ">= 10% uplift")
+        duration = st.text_input("Duration", "14 days")
+        guardrail = st.text_input("Guardrail metric", "No increase in churn")
+        add_experiment = st.form_submit_button("Add experiment")
+
+    if add_experiment:
+        if name.strip() and hypothesis.strip() and metric.strip():
+            st.session_state.experiments.append(
+                {
+                    "Experiment": name.strip(),
+                    "Hypothesis": hypothesis.strip(),
+                    "Metric": metric.strip(),
+                    "Threshold": threshold.strip(),
+                    "Duration": duration.strip(),
+                    "Guardrail": guardrail.strip(),
+                    "Status": "Planned",
+                    "Result": "Pending",
+                }
+            )
+            st.success("Experiment added.")
+        else:
+            st.error("Experiment name, hypothesis, and metric are required.")
+
+    if st.session_state.experiments:
+        st.dataframe(st.session_state.experiments, use_container_width=True)
+    else:
+        st.info("No experiments added yet.")
+
+
+def render_impact_tracking():
+    st.subheader("Closed-loop Impact Tracking")
+    st.caption("Link each action to measurable KPI movement after implementation.")
+
+    with st.form("impact_tracking_form"):
+        initiative = st.text_input("Initiative linked to impact")
+        metric_name = st.text_input("Metric name", "Week 1 retention")
+        baseline = st.number_input("Baseline value", min_value=0.0, value=0.0, step=0.1)
+        latest = st.number_input("Current value", min_value=0.0, value=0.0, step=0.1)
+        period = st.text_input("Review period", "After 4 weeks")
+        add_impact = st.form_submit_button("Record impact")
+
+    if add_impact:
+        if initiative.strip() and metric_name.strip():
+            uplift = latest - baseline
+            uplift_pct = ((uplift / baseline) * 100) if baseline else 0.0
+            st.session_state.impact_tracking.append(
+                {
+                    "Initiative": initiative.strip(),
+                    "Metric": metric_name.strip(),
+                    "Baseline": f"{baseline:.2f}",
+                    "Current": f"{latest:.2f}",
+                    "AbsoluteChange": f"{uplift:.2f}",
+                    "PercentChange": f"{uplift_pct:.1f}%",
+                    "Period": period.strip(),
+                }
+            )
+            st.success("Impact entry recorded.")
+        else:
+            st.error("Initiative and metric are required.")
+
+    if st.session_state.impact_tracking:
+        st.dataframe(st.session_state.impact_tracking, use_container_width=True)
+    else:
+        st.info("No impact records yet.")
+
+
+def render_executive_business_review():
+    st.subheader("Executive Weekly Business Review")
+    st.caption("Use this generated brief for leadership updates.")
+
+    planned_count = sum(1 for item in st.session_state.initiative_portfolio if item["Status"] == "Planned")
+    active_count = sum(1 for item in st.session_state.initiative_portfolio if item["Status"] == "In Progress")
+    done_count = sum(1 for item in st.session_state.initiative_portfolio if item["Status"] == "Done")
+
+    review_text = (
+        "Business Review Summary\n"
+        f"- Portfolio status: {active_count} in progress, {planned_count} planned, {done_count} done.\n"
+        f"- Experiments tracked: {len(st.session_state.experiments)} active/planned.\n"
+        f"- Impact records captured: {len(st.session_state.impact_tracking)}.\n"
+        "- Decisions needed: confirm next 2 high-impact initiatives and owners.\n"
+        "- Risks: monitor low-confidence insights and data freshness gaps.\n"
+    )
+    st.text_area("Generated leadership brief", value=review_text, height=180)
+    st.download_button(
+        "Download Brief",
+        data=review_text,
+        file_name="executive_business_review.txt",
+        mime="text/plain",
+    )
+
+
+def render_operating_system():
+    st.header("PM Operating System")
+    portfolio_tab, experiments_tab, impact_tab, review_tab = st.tabs(
+        ["Portfolio", "Experiments", "Impact", "Executive Review"]
+    )
+    with portfolio_tab:
+        render_initiative_portfolio()
+    with experiments_tab:
+        render_experiment_registry()
+    with impact_tab:
+        render_impact_tracking()
+    with review_tab:
+        render_executive_business_review()
 
 
 st.title("AI Business Decision Engine")
@@ -339,10 +560,14 @@ with st.sidebar:
     st.markdown(
         "1. Select a scenario.\n"
         "2. Add your business context.\n"
-        "3. Run analysis to view data, diagnosis, and actions."
+        "3. Run analysis to view data, diagnosis, and actions.\n"
+        "4. Use PM Operating System for portfolio and tracking."
     )
+init_operating_state()
 
-analysis_tab, data_manager_tab = st.tabs(["Analysis", "Data Manager"])
+analysis_tab, data_manager_tab, operating_tab = st.tabs(
+    ["Analysis", "Data Manager", "PM Operating System"]
+)
 
 with analysis_tab:
     scenario = st.selectbox(
@@ -400,6 +625,9 @@ with analysis_tab:
 
 with data_manager_tab:
     render_data_manager()
+
+with operating_tab:
+    render_operating_system()
 
 st.markdown("---")
 st.caption("Built as part of AI Product Management Portfolio")
