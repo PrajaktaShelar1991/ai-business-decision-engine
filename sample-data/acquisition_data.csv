@@ -1,0 +1,11 @@
+Week,OrganicSessions,PaidSessions,PaidCTR,CAC,TopFunnelCVR,Notes
+2024-W01,42000,18000,2.6%,36,4.8%,Stable baseline
+2024-W02,40800,17600,2.4%,37,4.7%,Early ranking loss on category terms
+2024-W03,39500,17100,2.3%,39,4.5%,Paid creative fatigue visible
+2024-W04,38100,16700,2.2%,40,4.4%,Competitor bidding pressure
+2024-W05,36900,16300,2.1%,41,4.3%,Lower branded query share
+2024-W06,35600,15800,2.0%,42,4.1%,Ad relevance score dropped
+2024-W07,34400,15400,1.9%,44,4.0%,Landing page mismatch
+2024-W08,33300,15100,1.9%,45,3.9%,Budget shifted to broad campaigns
+2024-W09,32100,14700,1.8%,46,3.8%,Retargeting pool shrank
+2024-W10,31000,14200,1.7%,48,3.7%,Sustained top-funnel decline
