@@ -22,6 +22,8 @@ An AI-powered agent system that mimics how Product Managers, Analysts, and Engin
 ## 📊 Demo Use Case
 Revenue dropped by 15% — system analyzes and generates recommendations.
 
+The app now includes richer sample datasets and deeper, stage-by-stage dropout diagnostics so users can clearly understand where losses happen and why.
+
 ## 📁 Outputs
 
 - [Insights](outputs/insights.md)
